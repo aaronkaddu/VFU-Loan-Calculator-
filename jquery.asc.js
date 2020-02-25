@@ -1,32 +1,3 @@
-/*
- * 
- * jQuery Amortization Schedule Calculator
- * By: Sandro Dzneladze [http://jasc.idev.ge]
- *
- * Copyright 2014 Sandro Dzneladze
- *  
- * You may use this project under MIT license.
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *  
- */
-
 (function($) {
     $.fn.jasc = function(options) {
 
@@ -148,14 +119,22 @@
             }
             // Transform into html
             var loanTableTd = [];
+            
+            var total_principal = 0;
+            var total_interest = 0;
+            var total_installment = 0;
             for (var t = 0; t < loanTable.length; t++) {
+                total_principal = (total_principal+parseFloat(loanTable[t].base));
+                total_interest = (total_interest+parseFloat(loanTable[t].percent));
+                total_installment = (total_installment+parseFloat(loanTable[t].installment));
+                
                 loanTableTd.push((t == 0 ? '<table class="table"><thead><tr><th>#</th><th>Date</th><th>Principal</th><th>Interest</th><th>Installment</th><th>Balance</th></tr></thead><tbody>' : '') + '<tr><td>'
                                           + (t + 1) +'</td><td>'
                                            + formatDate(loanTable[t].date) +'</td><td>'
                                             + roundTo2(loanTable[t].base) +'</td><td>'
                                              + roundTo2(loanTable[t].percent) +'</td><td>'
                                               + Math.round(loanTable[t].installment) +'</td><td>'
-                                               + roundTo2(loanTable[t].balance) +'</td></tr>' + (t == loanTable.length - 1 ? '</tbody></table>' : ''));
+                                               + roundTo2(loanTable[t].balance) +'</td></tr>' + (t == loanTable.length - 1 ? '<td></td><td><b>Total</b></td><td><b>'+roundTo2(total_principal)+'</b></td><td><b>'+roundTo2(total_interest)+'</b></td><td><b>'+Math.round(total_installment)+'</b></td><td></td></tbody></table>' : ''));
             }
             return loanTableTd;
         }
@@ -167,22 +146,26 @@
         function roundTo2(num) {
             return parseFloat(Math.round(num * 100) / 100).toFixed(2);
         }
+        
+        function round2null(num) {
+            return parseFloat(Math.round(num * 100) / 100).toFixed(0);
+        }
         function PMT(rate,nper,pv,fv,type) {
             // PMT excel function taken from https://gist.github.com/pies/4166888
-        	if (!fv) fv = 0;
-        	if (!type) type = 0;
-        	if (rate == 0) return -(pv + fv)/nper;
-        	var pvif = Math.pow(1 + rate, nper);
-        	var pmt = rate / (pvif - 1) * -(pv * pvif + fv);
-        	if (type == 1) {
-        		pmt /= (1 + rate);
-        	};
-        	return pmt;
+            if (!fv) fv = 0;
+            if (!type) type = 0;
+            if (rate == 0) return -(pv + fv)/nper;
+            var pvif = Math.pow(1 + rate, nper);
+            var pmt = rate / (pvif - 1) * -(pv * pvif + fv);
+            if (type == 1) {
+                pmt /= (1 + rate);
+            };
+            return pmt;
         }
         function IPMT(pv,pmt,rate,per) {
             // PMT excel function taken from https://gist.github.com/pies/4166888
-        	var tmp = Math.pow(1 + rate, per);
-        	return 0 - (pv * tmp * rate + pmt * (tmp - 1));
+            var tmp = Math.pow(1 + rate, per);
+            return 0 - (pv * tmp * rate + pmt * (tmp - 1));
         }
         
     }
